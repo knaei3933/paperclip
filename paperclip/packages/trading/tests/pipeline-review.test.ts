@@ -15,6 +15,7 @@ const mockConfig = {
 
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn(() => JSON.stringify(mockConfig)),
+  existsSync: vi.fn(() => true),
 }));
 
 vi.mock('node:url', async (importOriginal) => {

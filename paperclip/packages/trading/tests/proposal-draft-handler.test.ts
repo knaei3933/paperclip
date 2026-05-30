@@ -44,6 +44,7 @@ describe('createProposalDraft handler', () => {
     }));
     vi.doMock('node:fs', () => ({
       readFileSync: vi.fn(() => JSON.stringify(mockConfig)),
+      existsSync: vi.fn(() => true),
     }));
     vi.doMock('node:url', async (orig: () => any) => {
       const actual = await orig();
