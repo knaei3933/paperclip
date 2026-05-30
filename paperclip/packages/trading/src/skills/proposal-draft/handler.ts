@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { DbPool } from '../../db/pool.js';
@@ -9,10 +9,14 @@ import { getManufacturerById } from '../../manufacturers/manufacturer.service.js
 import { extractTextFromPdf } from '../../documents/pdf-extractor.js';
 import { calculateMargin } from './margin-calculator.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const config: TradingConfig = JSON.parse(
-  readFileSync(join(__dirname, '../../../trading.local.json'), 'utf-8')
-);
+let _configPath: string;
+try {
+  _configPath = join(dirname(fileURLToPath(import.meta.url)), '../../../trading.local.json');
+} catch {
+  _configPath = join(process.cwd(), 'packages/trading/trading.local.json');
+}
+if (!existsSync(_configPath)) _configPath = join(process.cwd(), 'packages/trading/trading.local.json');
+const config: TradingConfig = JSON.parse(readFileSync(_configPath, 'utf-8'));
 
 interface ProposalDraftInput {
   customerId: string;

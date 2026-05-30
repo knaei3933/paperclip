@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
@@ -36,8 +36,14 @@ export async function loadTradingTemplate(
   const { pool } = db;
 
   // Load and parse YAML template
-  const __dirname = dirname(fileURLToPath(import.meta.url));
-  const templatePath = join(__dirname, '..', '..', 'templates', 'trading-company.yaml');
+  let _templatePath: string;
+  try {
+    _templatePath = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'templates', 'trading-company.yaml');
+  } catch {
+    _templatePath = join(process.cwd(), 'packages/trading/templates/trading-company.yaml');
+  }
+  if (!existsSync(_templatePath)) _templatePath = join(process.cwd(), 'packages/trading/templates/trading-company.yaml');
+  const templatePath = _templatePath;
   let template: TradingTemplate;
   try {
     const raw = readFileSync(templatePath, 'utf-8');

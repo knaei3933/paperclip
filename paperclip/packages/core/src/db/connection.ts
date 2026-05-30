@@ -8,6 +8,7 @@ export function getPool(): pg.Pool {
   if (!pool) {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
+      max: 25,
     });
   }
   return pool;

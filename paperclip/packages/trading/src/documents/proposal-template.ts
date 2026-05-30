@@ -9,10 +9,14 @@ import type { TradingConfig } from '../skills/types.js';
 
 const OUTPUT_DIR = join(process.cwd(), 'generated-pdfs');
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const config: TradingConfig = JSON.parse(
-  readFileSync(join(__dirname, '../../trading.local.json'), 'utf-8')
-);
+let _configPath: string;
+try {
+  _configPath = join(dirname(fileURLToPath(import.meta.url)), '../../trading.local.json');
+} catch {
+  _configPath = join(process.cwd(), 'packages/trading/trading.local.json');
+}
+if (!existsSync(_configPath)) _configPath = join(process.cwd(), 'packages/trading/trading.local.json');
+const config: TradingConfig = JSON.parse(readFileSync(_configPath, 'utf-8'));
 
 const CJK_FONT_PATHS = [
   '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc',

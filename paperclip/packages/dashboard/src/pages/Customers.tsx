@@ -41,7 +41,7 @@ export function Customers() {
 
   const openEdit = (c: Customer) => {
     setEditing(c);
-    setFormData({ name: c.name, contactName: c.contactName, email: c.email, phone: c.phone, industry: c.industry, address: c.address ?? '', notes: c.notes ?? '' });
+    setFormData({ name: c.name, contactName: c.contactName ?? '', email: c.email ?? '', phone: c.phone ?? '', industry: c.industry ?? '', address: c.address ?? '', notes: c.notes ?? '' });
     setShowForm(true);
   };
 

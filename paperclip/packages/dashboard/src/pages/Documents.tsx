@@ -77,8 +77,8 @@ export function Documents() {
         fields: formValues,
       });
       setDocumentId(doc.id);
-      const pdfResult = await api.trading.getDocumentPdf(doc.id);
-      setPdfPath(pdfResult.pdfPath);
+      await api.trading.getDocumentPdf(doc.id);
+      setPdfPath(`/api/trading/documents/${doc.id}/pdf`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PDF生成に失敗しました');
     } finally {

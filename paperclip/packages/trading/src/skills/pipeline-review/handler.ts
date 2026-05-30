@@ -1,13 +1,17 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { DbPool } from '../../db/pool.js';
 import type { ActionItem, TradingConfig } from '../types.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const config: TradingConfig = JSON.parse(
-  readFileSync(join(__dirname, '../../../trading.local.json'), 'utf-8')
-);
+let _configPath: string;
+try {
+  _configPath = join(dirname(fileURLToPath(import.meta.url)), '../../../trading.local.json');
+} catch {
+  _configPath = join(process.cwd(), 'packages/trading/trading.local.json');
+}
+if (!existsSync(_configPath)) _configPath = join(process.cwd(), 'packages/trading/trading.local.json');
+const config: TradingConfig = JSON.parse(readFileSync(_configPath, 'utf-8'));
 
 export async function runPipelineReview(db: DbPool): Promise<ActionItem[]> {
   const actions: ActionItem[] = [];

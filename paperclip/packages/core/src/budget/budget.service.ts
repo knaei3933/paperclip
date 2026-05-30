@@ -30,30 +30,20 @@ let dbPool: Pool | null = null;
 export async function initBudgetService(db: DbPool): Promise<void> {
   dbPool = db.pool;
 
-  // Load all per-task budgets
-  const taskResult = await dbPool.query<{ agent_id: string; task_id: string; limit: number; spent: number }>(
-    'SELECT agent_id, task_id, limit, spent FROM budgets',
-  );
   taskBudgets.clear();
   agentBudgets.clear();
-  for (const row of taskResult.rows) {
-    taskBudgets.set(row.task_id, {
-      agentId: row.agent_id,
-      taskId: row.task_id,
-      limit: Number(row.limit),
-      spent: Number(row.spent),
-    });
-  }
 
-  // Load per-agent aggregates
-  const agentResult = await dbPool.query<{ agent_id: string; total_spent: string; total_limit: string }>(
-    'SELECT agent_id, SUM(spent) as total_spent, SUM(limit) as total_limit FROM budgets GROUP BY agent_id',
+  // Load per-agent budget aggregates from actual schema (allocated, used)
+  const result = await dbPool.query<{ agent_id: string; allocated: string; used: string }>(
+    'SELECT agent_id, SUM(allocated) as allocated, SUM(used) as used FROM budgets GROUP BY agent_id',
   );
-  for (const row of agentResult.rows) {
-    agentBudgets.set(row.agent_id, {
-      limit: Number(row.total_limit),
-      spent: Number(row.total_spent),
-    });
+  for (const row of result.rows) {
+    if (row.agent_id) {
+      agentBudgets.set(row.agent_id, {
+        limit: Number(row.allocated),
+        spent: Number(row.used),
+      });
+    }
   }
 }
 
@@ -64,11 +54,11 @@ export async function allocateBudget(
 ): Promise<BudgetRecord> {
   const record: BudgetRecord = { agentId, taskId, limit, spent: 0 };
 
-  // Write to DB first
+  // Write to DB
   if (dbPool) {
     await dbPool.query(
-      'INSERT INTO budgets (agent_id, task_id, limit, spent) VALUES ($1, $2, $3, 0)',
-      [agentId, taskId, limit],
+      'INSERT INTO budgets (id, agent_id, allocated, used) VALUES ($1, $2, $3, 0)',
+      [taskId, agentId, limit],
     );
   }
 
@@ -85,11 +75,11 @@ export async function allocateBudget(
 }
 
 export async function trackSpend(agentId: string, taskId: string, cost: number): Promise<void> {
-  // Update DB first
+  // Update DB
   if (dbPool) {
     await dbPool.query(
-      'UPDATE budgets SET spent = spent + $1, updated_at = NOW() WHERE agent_id = $2 AND task_id = $3',
-      [cost, agentId, taskId],
+      'UPDATE budgets SET used = used + $1, updated_at = NOW() WHERE id = $2',
+      [cost, taskId],
     );
   }
 
