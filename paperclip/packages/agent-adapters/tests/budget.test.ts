@@ -14,27 +14,27 @@ describe('Budget Service', () => {
     resetBudgets();
   });
 
-  it('allocates budget for a task and agent', () => {
-    const record = allocateBudget('agent-1', 'task-1', 10.0);
+  it('allocates budget for a task and agent', async () => {
+    const record = await allocateBudget('agent-1', 'task-1', 10.0);
     expect(record.limit).toBe(10.0);
     expect(record.spent).toBe(0);
     expect(record.agentId).toBe('agent-1');
     expect(record.taskId).toBe('task-1');
   });
 
-  it('tracks spend and reduces remaining budget', () => {
-    allocateBudget('agent-1', 'task-1', 10.0);
-    trackSpend('agent-1', 'task-1', 3.0);
-    trackSpend('agent-1', 'task-1', 2.0);
+  it('tracks spend and reduces remaining budget', async () => {
+    await allocateBudget('agent-1', 'task-1', 10.0);
+    await trackSpend('agent-1', 'task-1', 3.0);
+    await trackSpend('agent-1', 'task-1', 2.0);
 
     const budget = checkBudget('agent-1', 'task-1');
     expect(budget.remaining).toBeCloseTo(5.0);
     expect(budget.allowed).toBe(true);
   });
 
-  it('blocks execution when budget is exhausted', () => {
-    allocateBudget('agent-1', 'task-1', 5.0);
-    trackSpend('agent-1', 'task-1', 5.0);
+  it('blocks execution when budget is exhausted', async () => {
+    await allocateBudget('agent-1', 'task-1', 5.0);
+    await trackSpend('agent-1', 'task-1', 5.0);
 
     const budget = checkBudget('agent-1', 'task-1');
     expect(budget.allowed).toBe(false);
@@ -54,11 +54,11 @@ describe('Budget Service', () => {
     expect(cost).toBeCloseTo(0.018);
   });
 
-  it('calculates budget utilization', () => {
-    allocateBudget('agent-1', 'task-1', 10.0);
-    allocateBudget('agent-1', 'task-2', 20.0);
-    trackSpend('agent-1', 'task-1', 5.0);
-    trackSpend('agent-1', 'task-2', 10.0);
+  it('calculates budget utilization', async () => {
+    await allocateBudget('agent-1', 'task-1', 10.0);
+    await allocateBudget('agent-1', 'task-2', 20.0);
+    await trackSpend('agent-1', 'task-1', 5.0);
+    await trackSpend('agent-1', 'task-2', 10.0);
 
     const util = getBudgetUtilization('agent-1');
     expect(util.agentUtilization).toBeCloseTo(0.5);

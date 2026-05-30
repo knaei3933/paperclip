@@ -1,10 +1,22 @@
-import type { Task, TaskStatus } from '@paperclip/shared-types';
+import type { Task, TaskStatus, AIAgent } from '@paperclip/shared-types';
 import type { Pool } from 'pg';
 import type { EventBus } from '@paperclip/shared-types';
 import type { BaseAgentAdapter, AdapterContext } from '@paperclip/agent-adapters';
 import { getAdapter } from '../plugins/adapter-registry.js';
 import { checkBudget, trackSpend, convertTokensToCost } from '../budget/budget.service.js';
 import type { CostModel } from '../budget/cost-model.js';
+
+interface LearningCoordinator {
+  getSkillContext(task: { taskId: string; agentId: string; description: string; department?: string }): Promise<{
+    toolHints: string[];
+    memorySummary: string;
+    enrichedPrompt: string;
+    skillApplied: boolean;
+    skillId?: string;
+  }>;
+  trackTaskStart(taskId: string): void;
+  trackSkillApplication(taskId: string, skillId: string): void;
+}
 
 export interface DbPool {
   pool: Pool;
@@ -32,15 +44,17 @@ export class HeartbeatEngine {
   private config: Required<HeartbeatConfig>;
   private db: DbPool;
   private eventBus: EventBus;
+  private learningCoordinator?: LearningCoordinator;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private watchdogTimer: ReturnType<typeof setInterval> | null = null;
   private notifyListener: ((payload: string) => void) | null = null;
   private running = false;
 
-  constructor(db: DbPool, eventBus: EventBus, config?: HeartbeatConfig) {
+  constructor(db: DbPool, eventBus: EventBus, config?: HeartbeatConfig, learningCoordinator?: LearningCoordinator) {
     this.db = db;
     this.eventBus = eventBus;
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.learningCoordinator = learningCoordinator;
   }
 
   async start(): Promise<void> {
@@ -51,7 +65,7 @@ export class HeartbeatEngine {
     const { pool } = this.db;
     this.notifyListener = (payload: string) => {
       // NOTIFY is a hint — just trigger immediate poll
-      this.processNextTask().catch((err) => {
+      this.pollForIdleAgents().catch((err) => {
         console.error('[Heartbeat] Error on NOTIFY-driven process:', err);
       });
     };
@@ -72,9 +86,9 @@ export class HeartbeatEngine {
       console.warn('[Heartbeat] LISTEN setup failed, relying on polling only');
     }
 
-    // Polling fallback
+    // Polling fallback: iterate idle agents for skill-matched routing, then fallback
     this.pollTimer = setInterval(() => {
-      this.processNextTask().catch((err) => {
+      this.pollForIdleAgents().catch((err) => {
         console.error('[Heartbeat] Error on poll:', err);
       });
     }, this.config.pollIntervalMs);
@@ -113,20 +127,41 @@ export class HeartbeatEngine {
     this.notifyListener = null;
   }
 
-  async processNextTask(): Promise<Task | null> {
+  async processNextTask(agentId?: string): Promise<Task | null> {
     const { pool } = this.db;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
-      // Atomic task checkout with FOR UPDATE SKIP LOCKED
-      const result = await client.query(
-        `SELECT * FROM tasks
-         WHERE status = 'queued'
-         ORDER BY priority DESC, created_at ASC
-         LIMIT 1
-         FOR UPDATE SKIP LOCKED`,
-      );
+      // Skill-matched query when agent context is provided
+      let result;
+      if (agentId) {
+        result = await client.query(
+          `SELECT t.* FROM tasks t
+           WHERE t.status = 'queued'
+             AND t.assignee_id IS NULL
+             AND (t.required_skills = '{}' OR EXISTS (
+               SELECT 1 FROM agents a WHERE a.id = $1
+                 AND a.skills && t.required_skills
+             ))
+           ORDER BY t.priority DESC, t.created_at ASC
+           LIMIT 1
+           FOR UPDATE SKIP LOCKED`,
+          [agentId],
+        );
+      }
+
+      // Fallback: agent-agnostic priority-based query
+      if (!result || result.rows.length === 0) {
+        result = await client.query(
+          `SELECT * FROM tasks
+           WHERE status = 'queued'
+             AND assignee_id IS NULL
+           ORDER BY priority DESC, created_at ASC
+           LIMIT 1
+           FOR UPDATE SKIP LOCKED`,
+        );
+      }
 
       if (result.rows.length === 0) {
         await client.query('COMMIT');
@@ -141,12 +176,27 @@ export class HeartbeatEngine {
 
       await client.query('COMMIT');
 
+      // Resolve agent for adapter type and skill enrichment
+      let agent: AIAgent | null = null;
+      if (agentId) {
+        const agentResult = await pool.query(
+          `SELECT id, name, role, department_id as "departmentId",
+                  skills, budget_limit as "budgetLimit",
+                  COALESCE(workspace_id::text, '') as "workspaceId",
+                  status, capabilities, adapter_type as "adapterType",
+                  adapter_config as "adapterConfig", proactive_routines as "proactiveRoutines"
+           FROM agents WHERE id = $1`,
+          [agentId],
+        );
+        agent = agentResult.rows[0] ?? null;
+      }
+
       const mappedTask: Task = {
         id: task.id,
         title: task.title,
         description: task.description,
         status: 'running' as TaskStatus,
-        assigneeId: task.assignee_id ?? '',
+        assigneeId: task.assignee_id ?? agentId ?? '',
         budgetAllocated: Number(task.budget_allocated),
         budgetUsed: Number(task.budget_used),
         priority: task.priority,
@@ -156,8 +206,11 @@ export class HeartbeatEngine {
         updatedAt: new Date(),
       };
 
+      // Track task start for learning loop timing
+      this.learningCoordinator?.trackTaskStart(mappedTask.id);
+
       // Resolve adapter and execute
-      await this.executeWithAdapter(mappedTask);
+      await this.executeWithAdapter(mappedTask, agent);
 
       return mappedTask;
     } catch (err) {
@@ -168,8 +221,8 @@ export class HeartbeatEngine {
     }
   }
 
-  private async executeWithAdapter(task: Task): Promise<void> {
-    const adapterType = this.config.defaultAdapterType;
+  private async executeWithAdapter(task: Task, agent?: AIAgent | null): Promise<void> {
+    const adapterType = agent?.adapterType || this.config.defaultAdapterType;
     const adapter = getAdapter(adapterType);
 
     if (!adapter) {
@@ -200,19 +253,45 @@ export class HeartbeatEngine {
       return;
     }
 
-    // SkillApplicator placeholder — will be wired in Step 4
-    const context: AdapterContext = {
+    // Skill enrichment via LearningCoordinator (feature-flagged)
+    let context: AdapterContext = {
       skillHints: [],
+      toolHints: [],
       memorySummary: '',
+      skillApplied: false,
       enrichedPrompt: task.description,
     };
+
+    if (this.learningCoordinator && process.env.SKILL_WIRING_ENABLED === 'true' && agent) {
+      try {
+        const skillContext = await this.learningCoordinator.getSkillContext({
+          taskId: task.id,
+          agentId: agent.id,
+          description: task.description,
+          department: agent.departmentId,
+        });
+        context = {
+          skillHints: skillContext.toolHints ?? [],
+          toolHints: skillContext.toolHints ?? [],
+          memorySummary: skillContext.memorySummary ?? '',
+          enrichedPrompt: skillContext.enrichedPrompt ?? task.description,
+          skillApplied: skillContext.skillApplied ?? false,
+          skillId: skillContext.skillId,
+        };
+        if (skillContext.skillApplied && skillContext.skillId) {
+          this.learningCoordinator.trackSkillApplication(task.id, skillContext.skillId);
+        }
+      } catch (err) {
+        console.error('[Heartbeat] Skill enrichment failed, using raw prompt:', err);
+      }
+    }
 
     const result = await adapter.execute(task, context);
 
     // Track cost from token usage
     if (result.tokenUsage) {
       const cost = convertTokensToCost(result.tokenUsage, this.config.costModel);
-      trackSpend(task.assigneeId, task.id, cost);
+      await trackSpend(task.assigneeId, task.id, cost);
     }
 
     // Update task status based on result
@@ -267,6 +346,18 @@ export class HeartbeatEngine {
         correlationId: task.id,
       });
     }
+  }
+
+  private async pollForIdleAgents(): Promise<void> {
+    const { pool } = this.db;
+    const agents = await pool.query(
+      `SELECT id FROM agents WHERE status = 'idle'`,
+    );
+    for (const row of agents.rows) {
+      await this.processNextTask(row.id);
+    }
+    // Fallback: pick up any remaining unassigned tasks
+    await this.processNextTask();
   }
 
   async checkStuckTasks(): Promise<Task[]> {

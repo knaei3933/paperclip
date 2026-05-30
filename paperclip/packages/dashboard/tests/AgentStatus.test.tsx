@@ -11,7 +11,10 @@ const mockAgents = [
     departmentId: 'dept-sales',
     status: 'idle',
     budgetLimit: 1000,
+    budgetUsed: 0,
     currentTaskId: null,
+    capabilities: '',
+    adapterType: 'claude-code',
   },
   {
     id: 'agent-2',
@@ -20,7 +23,10 @@ const mockAgents = [
     departmentId: 'dept-support',
     status: 'running',
     budgetLimit: 500,
+    budgetUsed: 100,
     currentTaskId: 'task-123',
+    capabilities: '',
+    adapterType: 'claude-code',
   },
   {
     id: 'agent-3',
@@ -29,7 +35,10 @@ const mockAgents = [
     departmentId: 'dept-finance',
     status: 'error',
     budgetLimit: 2000,
+    budgetUsed: 0,
     currentTaskId: null,
+    capabilities: '',
+    adapterType: 'claude-code',
   },
 ];
 
@@ -41,7 +50,7 @@ describe('AgentStatus', () => {
   it('renders loading state', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}));
     render(<AgentStatus wsEvent={null} />);
-    expect(screen.getByText('Loading agents...')).toBeInTheDocument();
+    expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
   it('renders agent cards with names and statuses', async () => {
@@ -74,8 +83,8 @@ describe('AgentStatus', () => {
     render(<AgentStatus wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Role: sales')).toBeInTheDocument();
-      expect(screen.getByText('Dept: dept-sales')).toBeInTheDocument();
+      expect(screen.getByText('役割: sales')).toBeInTheDocument();
+      expect(screen.getByText('部門: dept-sales')).toBeInTheDocument();
     });
   });
 
@@ -89,7 +98,7 @@ describe('AgentStatus', () => {
     render(<AgentStatus wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Task: task-123')).toBeInTheDocument();
+      expect(screen.getByText('タスク: task-123')).toBeInTheDocument();
     });
   });
 
@@ -103,7 +112,7 @@ describe('AgentStatus', () => {
     render(<AgentStatus wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('No agents found.')).toBeInTheDocument();
+      expect(screen.getByText('エージェントが見つかりません。')).toBeInTheDocument();
     });
   });
 

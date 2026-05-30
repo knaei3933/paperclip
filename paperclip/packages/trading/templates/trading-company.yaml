@@ -1,0 +1,154 @@
+# Trading Company Template for Paperclip Platform
+# Defines departments and agents for 金井 trading operations
+
+departments:
+  - name: 経営
+    type: executive
+  - name: 営業部
+    type: sales
+  - name: 購買部
+    type: purchasing
+  - name: 在庫管理部
+    type: inventory
+  - name: 貿易部
+    type: trade
+  - name: 経理部
+    type: accounting
+  - name: 法務部
+    type: legal
+  - name: 人事部
+    type: hr
+  - name: マーケティング部
+    type: marketing
+  - name: 補助金部
+    type: subsidy
+  - name: Webデザイン部
+    type: web
+
+agents:
+  - name: 金井-代表
+    role: CEO
+    department: 経営
+    capabilities: "Set direction, approve proposals, manage budget allocation for the trading company."
+    skills: [management, budget-approval, strategic-planning]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []
+
+  - name: 金井-営業
+    role: sales
+    department: 営業部
+    capabilities: "Manage customer relationships, track deals, follow up on stalled deals, generate sales reports."
+    skills: [crm, deal-tracking, customer-communication, negotiation]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines:
+      - name: pipeline_review
+        schedule: "0 9 * * 1"
+        task_template:
+          title: "Weekly Pipeline Review"
+          description: "Review all active deals in the pipeline, identify stalled deals, and suggest follow-up actions."
+          priority: 6
+          budget: 5
+
+  - name: 金井-購買
+    role: purchasing
+    department: 購買部
+    capabilities: "Source equipment from manufacturers, negotiate pricing, process quotations, manage supplier relationships."
+    skills: [procurement, price-negotiation, quotation-processing, supplier-management]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []
+
+  - name: 金井-在庫
+    role: inventory
+    department: 在庫管理部
+    capabilities: "Track inventory levels, manage delivery schedules, alert on low stock, coordinate with purchasing."
+    skills: [inventory-tracking, delivery-management, stock-alerts]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines:
+      - name: inventory_check
+        schedule: "0 8 * * *"
+        task_template:
+          title: "Daily Inventory Check"
+          description: "Check current inventory levels and generate alerts for items below reorder threshold."
+          priority: 5
+          budget: 3
+
+  - name: 金井-貿易
+    role: trade
+    department: 貿易部
+    capabilities: "Handle import/export documentation, customs clearance, shipping coordination, trade compliance."
+    skills: [import-export, customs-documentation, shipping-coordination, compliance]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []
+
+  - name: 金井-経理
+    role: accounting
+    department: 経理部
+    capabilities: "Process invoices, manage payments, track budgets, generate financial reports, handle tax documents."
+    skills: [invoicing, payment-processing, budget-tracking, financial-reporting]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines:
+      - name: weekly_budget_report
+        schedule: "0 10 * * 5"
+        task_template:
+          title: "Weekly Budget Report"
+          description: "Generate weekly budget utilization report and flag any departments over budget."
+          priority: 5
+          budget: 3
+
+  - name: 金井-法務
+    role: legal
+    department: 法務部
+    capabilities: "Review contracts, ensure compliance with trade regulations, manage legal documentation."
+    skills: [contract-review, compliance-check, legal-documentation]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []
+
+  - name: 金井-人事
+    role: hr
+    department: 人事部
+    capabilities: "Manage team coordination, handle hiring processes, maintain employee records."
+    skills: [team-management, hiring, employee-records]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []
+
+  - name: 金井-マーケティング
+    role: marketing
+    department: マーケティング部
+    capabilities: "Generate marketing content, manage outreach campaigns, track engagement metrics."
+    skills: [content-creation, campaign-management, engagement-tracking]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []
+
+  - name: 金井-補助金
+    role: subsidy
+    department: 補助金部
+    capabilities: "Research and apply for subsidies, track application deadlines, prepare grant documentation."
+    skills: [subsidy-research, grant-writing, deadline-tracking]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines:
+      - name: subsidy_deadline_check
+        schedule: "0 9 * * 1"
+        task_template:
+          title: "Weekly Subsidy Deadline Check"
+          description: "Check upcoming subsidy application deadlines and prepare reminders for actionable opportunities."
+          priority: 4
+          budget: 3
+
+  - name: 金井-Webデザイン
+    role: web
+    department: Webデザイン部
+    capabilities: "Manage web presence, update website content, handle SEO optimization, design landing pages."
+    skills: [web-design, content-management, seo]
+    adapter_type: claude-code
+    adapter_config: {}
+    routines: []

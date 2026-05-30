@@ -11,6 +11,7 @@ export type { Dashboard, AgentStatusEntry, TaskProgressEntry, DashboardMetric } 
 export type { MultiChannel, PlatformConfig, ActiveConnection } from './entities/MultiChannel.js';
 export type { Workspace } from './entities/Workspace.js';
 export type { Budget } from './entities/Budget.js';
+export type { AdapterContext } from './entities/AdapterContext.js';
 
 // Events
 export type {

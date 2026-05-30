@@ -1,16 +1,11 @@
 import type { Pool } from 'pg';
-import type { EventBus, SkillApplied } from '@paperclip/shared-types';
+import type { EventBus, SkillApplied, AdapterContext } from '@paperclip/shared-types';
 import type { Skill } from '../skill-generator/skill-generator.service.js';
+
+export type { AdapterContext };
 
 export interface DbPool {
   pool: Pool;
-}
-
-export interface AdapterContext {
-  skillApplied: boolean;
-  skillId?: string;
-  enrichedPrompt: string;
-  toolHints: string[];
 }
 
 export interface TaskContext {
@@ -33,7 +28,7 @@ export async function applySkills(
 
   const domain = task.department ?? task.taskType ?? '';
   if (!domain) {
-    return { skillApplied: false, enrichedPrompt: task.description, toolHints: [] };
+    return { skillHints: [], toolHints: [], memorySummary: '', skillApplied: false, enrichedPrompt: task.description };
   }
 
   // Find active (non-deprecated) skills for this agent matching the domain
@@ -48,7 +43,7 @@ export async function applySkills(
   );
 
   if (result.rows.length === 0) {
-    return { skillApplied: false, enrichedPrompt: task.description, toolHints: [] };
+    return { skillHints: [], toolHints: [], memorySummary: '', skillApplied: false, enrichedPrompt: task.description };
   }
 
   const skill = rowToSkill(result.rows[0]);
@@ -63,10 +58,12 @@ export async function applySkills(
   ].join('\n');
 
   return {
+    skillHints: [],
+    toolHints: skill.toolSequence,
+    memorySummary: '',
     skillApplied: true,
     skillId: skill.id,
     enrichedPrompt,
-    toolHints: skill.toolSequence,
   };
 }
 

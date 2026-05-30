@@ -42,7 +42,7 @@ describe('ImprovementMetrics', () => {
   it('renders loading state', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}));
     render(<ImprovementMetrics />);
-    expect(screen.getByText('Loading metrics...')).toBeInTheDocument();
+    expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
   it('renders chart titles when data loaded', async () => {
@@ -55,9 +55,9 @@ describe('ImprovementMetrics', () => {
     render(<ImprovementMetrics />);
 
     await waitFor(() => {
-      expect(screen.getByText('Completion Time Trend')).toBeInTheDocument();
-      expect(screen.getByText('Success Rate Trend')).toBeInTheDocument();
-      expect(screen.getByText('Cost Efficiency Trend')).toBeInTheDocument();
+      expect(screen.getByText('完了時間の推移')).toBeInTheDocument();
+      expect(screen.getByText('成功率の推移')).toBeInTheDocument();
+      expect(screen.getByText('コスト効率の推移')).toBeInTheDocument();
     });
   });
 
@@ -71,7 +71,7 @@ describe('ImprovementMetrics', () => {
     render(<ImprovementMetrics />);
 
     await waitFor(() => {
-      expect(screen.getByText('Agent:')).toBeInTheDocument();
+      expect(screen.getByText('エージェント:')).toBeInTheDocument();
       const select = screen.getByRole('combobox');
       expect(select).toBeInTheDocument();
     });
@@ -102,7 +102,7 @@ describe('ImprovementMetrics', () => {
     render(<ImprovementMetrics />);
 
     await waitFor(() => {
-      expect(screen.getByText('No improvement data available.')).toBeInTheDocument();
+      expect(screen.getByText('改善データがありません。')).toBeInTheDocument();
     });
   });
 });

@@ -20,12 +20,14 @@ function createTestDeps(): ApiServerDeps {
     getImprovementMetrics: async () => ({}),
     getBudgetUtilization: async () => ({}),
     getThresholds: () => [],
-    setThreshold: () => {},
+    setThreshold: async () => {},
     routeEscalation: async () => [],
     createPipeline: async (input) => input,
     listPipelines: async () => [],
     getPipelineById: async () => null,
     advancePipeline: async () => ({ advanced: false }),
+    updateAgent: async () => null,
+    deactivateAgent: async () => false,
   };
 }
 

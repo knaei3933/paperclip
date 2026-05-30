@@ -33,7 +33,7 @@ describe('ApprovalQueue', () => {
   it('renders loading state', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}));
     render(<ApprovalQueue wsEvent={null} />);
-    expect(screen.getByText('Loading approvals...')).toBeInTheDocument();
+    expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
   it('renders pending escalations with details', async () => {
@@ -61,8 +61,8 @@ describe('ApprovalQueue', () => {
     render(<ApprovalQueue wsEvent={null} />);
 
     await waitFor(() => {
-      const approveButtons = screen.getAllByText('Approve');
-      const rejectButtons = screen.getAllByText('Reject');
+      const approveButtons = screen.getAllByText('承認');
+      const rejectButtons = screen.getAllByText('却下');
       expect(approveButtons.length).toBe(2);
       expect(rejectButtons.length).toBe(2);
     });
@@ -93,7 +93,7 @@ describe('ApprovalQueue', () => {
     render(<ApprovalQueue wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('No pending approvals.')).toBeInTheDocument();
+      expect(screen.getByText('承認待ちはありません。')).toBeInTheDocument();
     });
   });
 
@@ -120,7 +120,7 @@ describe('ApprovalQueue', () => {
       expect(screen.getByText('Budget exceeds threshold')).toBeInTheDocument();
     });
 
-    const approveButtons = screen.getAllByText('Approve');
+    const approveButtons = screen.getAllByText('承認');
     await userEvent.click(approveButtons[0]);
 
     // After approval, only one escalation should remain
@@ -151,7 +151,7 @@ describe('ApprovalQueue', () => {
       expect(screen.getByText('Requires human approval for sensitive data')).toBeInTheDocument();
     });
 
-    const rejectButtons = screen.getAllByText('Reject');
+    const rejectButtons = screen.getAllByText('却下');
     await userEvent.click(rejectButtons[1]);
 
     await waitFor(() => {
@@ -179,7 +179,7 @@ describe('ApprovalQueue', () => {
     const { rerender } = render(<ApprovalQueue wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('No pending approvals.')).toBeInTheDocument();
+      expect(screen.getByText('承認待ちはありません。')).toBeInTheDocument();
     });
 
     const wsEvent = {

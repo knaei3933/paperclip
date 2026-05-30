@@ -10,8 +10,10 @@ export {
   registerAgent,
   getAgentById,
   listAgentsByDepartment,
+  updateAgent,
+  deactivateAgent,
 } from './identity/identity.service.js';
-export type { RegisterAgentInput, DbPool as IdentityDbPool } from './identity/identity.service.js';
+export type { RegisterAgentInput, DbPool as IdentityDbPool, UpdateAgentInput } from './identity/identity.service.js';
 
 // Org Chart & Agents
 export {
@@ -77,8 +79,9 @@ export {
   getBudgetUtilization,
   convertTokensToCost,
   resetBudgets,
+  initBudgetService,
 } from './budget/budget.service.js';
-export type { BudgetRecord, TokenUsage } from './budget/budget.service.js';
+export type { BudgetRecord, TokenUsage, DbPool as BudgetDbPool } from './budget/budget.service.js';
 export { DEFAULT_COST_MODELS } from './budget/cost-model.js';
 export type { CostModel } from './budget/cost-model.js';
 
@@ -90,8 +93,9 @@ export {
   evaluateAction,
   isAutoApproved,
   resetThresholds,
+  initGovernanceService,
 } from './governance/governance.service.js';
-export type { ThresholdDimension, ProposedAction, EvaluationResult } from './governance/governance.service.js';
+export type { ThresholdDimension, ProposedAction, EvaluationResult, DbPool as GovernanceDbPool } from './governance/governance.service.js';
 
 // Escalation
 export {

@@ -64,12 +64,12 @@ export class CronRoutineScheduler {
           }
         }
 
-        // Create task from template
+        // Create task from template, bind to agent if routine has agent_id
         const template = row.task_template;
         await this.pool.query(
-          `INSERT INTO tasks (id, title, description, status, priority, budget_allocated, budget_used, retry_count, created_at, updated_at)
-           VALUES (gen_random_uuid(), $1, $2, 'queued', $3, $4, 0, 0, NOW(), NOW())`,
-          [template.title, template.description, template.priority ?? 5, template.budget ?? 10]
+          `INSERT INTO tasks (id, title, description, status, priority, budget_allocated, budget_used, retry_count, created_at, updated_at, assignee_id)
+           VALUES (gen_random_uuid(), $1, $2, 'queued', $3, $4, 0, 0, NOW(), NOW(), $5)`,
+          [template.title, template.description, template.priority ?? 5, template.budget ?? 10, row.agent_id ?? null]
         );
 
         // Update last_run
@@ -81,11 +81,11 @@ export class CronRoutineScheduler {
     }
   }
 
-  async seedRoutine(input: { name: string; schedule: string; task_template: object; department: string }): Promise<void> {
+  async seedRoutine(input: { name: string; schedule: string; task_template: object; department: string; agent_id?: string }): Promise<void> {
     await this.pool.query(
-      `INSERT INTO routines (name, schedule, task_template, department, enabled) VALUES ($1, $2, $3, $4, true)
+      `INSERT INTO routines (name, schedule, task_template, department, agent_id, enabled) VALUES ($1, $2, $3, $4, $5, true)
        ON CONFLICT DO NOTHING`,
-      [input.name, input.schedule, JSON.stringify(input.task_template), input.department]
+      [input.name, input.schedule, JSON.stringify(input.task_template), input.department, input.agent_id ?? null]
     );
   }
 }

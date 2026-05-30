@@ -1,4 +1,9 @@
+import type { Pool } from 'pg';
 import type { CostModel } from './cost-model.js';
+
+export interface DbPool {
+  pool: Pool;
+}
 
 export interface BudgetRecord {
   agentId: string;
@@ -13,27 +18,82 @@ export interface TokenUsage {
   total: number;
 }
 
-const agentBudgets = new Map<string, BudgetRecord>();
-const taskBudgets = new Map<string, BudgetRecord>();
+interface AgentBudgetAggregate {
+  limit: number;
+  spent: number;
+}
 
-export function allocateBudget(
+const taskBudgets = new Map<string, BudgetRecord>();
+const agentBudgets = new Map<string, AgentBudgetAggregate>();
+let dbPool: Pool | null = null;
+
+export async function initBudgetService(db: DbPool): Promise<void> {
+  dbPool = db.pool;
+
+  // Load all per-task budgets
+  const taskResult = await dbPool.query<{ agent_id: string; task_id: string; limit: number; spent: number }>(
+    'SELECT agent_id, task_id, limit, spent FROM budgets',
+  );
+  taskBudgets.clear();
+  agentBudgets.clear();
+  for (const row of taskResult.rows) {
+    taskBudgets.set(row.task_id, {
+      agentId: row.agent_id,
+      taskId: row.task_id,
+      limit: Number(row.limit),
+      spent: Number(row.spent),
+    });
+  }
+
+  // Load per-agent aggregates
+  const agentResult = await dbPool.query<{ agent_id: string; total_spent: string; total_limit: string }>(
+    'SELECT agent_id, SUM(spent) as total_spent, SUM(limit) as total_limit FROM budgets GROUP BY agent_id',
+  );
+  for (const row of agentResult.rows) {
+    agentBudgets.set(row.agent_id, {
+      limit: Number(row.total_limit),
+      spent: Number(row.total_spent),
+    });
+  }
+}
+
+export async function allocateBudget(
   agentId: string,
   taskId: string,
   limit: number,
-): BudgetRecord {
+): Promise<BudgetRecord> {
   const record: BudgetRecord = { agentId, taskId, limit, spent: 0 };
+
+  // Write to DB first
+  if (dbPool) {
+    await dbPool.query(
+      'INSERT INTO budgets (agent_id, task_id, limit, spent) VALUES ($1, $2, $3, 0)',
+      [agentId, taskId, limit],
+    );
+  }
+
+  // Update in-memory cache
   taskBudgets.set(taskId, record);
-  // Also track per-agent cumulative
   const existing = agentBudgets.get(agentId);
   if (existing) {
     existing.limit += limit;
   } else {
-    agentBudgets.set(agentId, { agentId, taskId: '', limit, spent: 0 });
+    agentBudgets.set(agentId, { limit, spent: 0 });
   }
+
   return record;
 }
 
-export function trackSpend(agentId: string, taskId: string, cost: number): void {
+export async function trackSpend(agentId: string, taskId: string, cost: number): Promise<void> {
+  // Update DB first
+  if (dbPool) {
+    await dbPool.query(
+      'UPDATE budgets SET spent = spent + $1, updated_at = NOW() WHERE agent_id = $2 AND task_id = $3',
+      [cost, agentId, taskId],
+    );
+  }
+
+  // Update in-memory cache
   const taskBudget = taskBudgets.get(taskId);
   if (taskBudget) {
     taskBudget.spent += cost;
@@ -78,6 +138,6 @@ export function convertTokensToCost(usage: TokenUsage, model: CostModel): number
 }
 
 export function resetBudgets(): void {
-  agentBudgets.clear();
   taskBudgets.clear();
+  agentBudgets.clear();
 }

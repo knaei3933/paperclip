@@ -1,12 +1,8 @@
-import type { Task } from '@paperclip/shared-types';
+import type { Task, AdapterContext } from '@paperclip/shared-types';
+
+export type { AdapterContext };
 
 export type AdapterStatus = 'idle' | 'busy' | 'error';
-
-export interface AdapterContext {
-  skillHints: string[];
-  memorySummary: string;
-  enrichedPrompt: string;
-}
 
 export interface AdapterResult {
   success: boolean;

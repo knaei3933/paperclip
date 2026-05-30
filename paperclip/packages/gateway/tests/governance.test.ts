@@ -41,8 +41,8 @@ describe('Governance - Threshold Evaluation', () => {
     expect(result.reason).toContain('risk');
   });
 
-  it('respects custom thresholds after setThreshold', () => {
-    setThreshold({
+  it('respects custom thresholds after setThreshold', async () => {
+    await setThreshold({
       id: 'custom-budget',
       dimension: 'budget',
       value: 500,
@@ -76,8 +76,8 @@ describe('Governance - Threshold Evaluation', () => {
     expect(budget!.dimension).toBe('budget');
   });
 
-  it('ignores scope mismatch for scoped thresholds', () => {
-    setThreshold({
+  it('ignores scope mismatch for scoped thresholds', async () => {
+    await setThreshold({
       id: 'scoped-budget',
       dimension: 'budget',
       value: 10,

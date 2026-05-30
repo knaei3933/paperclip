@@ -18,10 +18,12 @@ export interface ApiServerDeps {
   getPendingEscalations: () => Promise<unknown[]>;
   approveEscalation: (id: string) => Promise<unknown>;
   rejectEscalation: (id: string) => Promise<unknown>;
+  updateAgent: (id: string, data: Record<string, unknown>) => Promise<unknown | null>;
+  deactivateAgent: (id: string) => Promise<boolean>;
   getImprovementMetrics: () => Promise<unknown>;
   getBudgetUtilization: () => Promise<unknown>;
   getThresholds: () => unknown[];
-  setThreshold: (threshold: Record<string, unknown>) => void;
+  setThreshold: (threshold: Record<string, unknown>) => Promise<void>;
   routeEscalation: (escalation: unknown) => Promise<string[]>;
   createPipeline: (input: Record<string, unknown>) => Promise<unknown>;
   listPipelines: () => Promise<unknown[]>;
@@ -97,6 +99,19 @@ export class ApiServer {
       return Response.json(result);
     });
 
+    this.addRoute('PUT', '/api/agents/:id', async (req, params) => {
+      const body = await req.json() as Record<string, unknown>;
+      const agent = await this.deps.updateAgent(params.id, body);
+      if (!agent) return Response.json({ error: 'Agent not found' }, { status: 404 });
+      return Response.json({ agent });
+    });
+
+    this.addRoute('DELETE', '/api/agents/:id', async (_req, params) => {
+      const success = await this.deps.deactivateAgent(params.id);
+      if (!success) return Response.json({ error: 'Agent not found' }, { status: 404 });
+      return Response.json({ success: true });
+    });
+
     this.addRoute('GET', '/api/tasks', async (req) => {
       const url = new URL(req.url);
       const filters: Record<string, string> = {};
@@ -161,7 +176,7 @@ export class ApiServer {
 
     this.addRoute('PUT', '/api/settings/thresholds', async (req) => {
       const body = await req.json() as Record<string, unknown>;
-      this.deps.setThreshold(body);
+      await this.deps.setThreshold(body);
       return Response.json({ success: true });
     });
 

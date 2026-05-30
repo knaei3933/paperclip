@@ -1,6 +1,11 @@
 import type { ApprovalThreshold } from '@paperclip/shared-types';
+import type { Pool } from 'pg';
 
 export type ThresholdDimension = ApprovalThreshold['dimension'];
+
+export interface DbPool {
+  pool: Pool;
+}
 
 export interface ProposedAction {
   budget?: number;
@@ -32,6 +37,53 @@ const DEFAULT_TIMEOUTS: Record<ThresholdDimension, number> = {
 
 let thresholds = new Map<ThresholdDimension, ApprovalThreshold>();
 let initialized = false;
+let dbPool: Pool | null = null;
+
+export async function initGovernanceService(db: DbPool): Promise<void> {
+  dbPool = db.pool;
+  thresholds.clear();
+
+  const result = await dbPool.query<{
+    id: string;
+    dimension: ThresholdDimension;
+    value: string;
+    timeout_ms: number;
+    timeout_action: string;
+    scope: string;
+  }>('SELECT id, dimension, value, timeout_ms, timeout_action, scope FROM approval_thresholds');
+
+  if (result.rows.length === 0) {
+    // Insert defaults
+    for (const [dim, val] of Object.entries(DEFAULT_THRESHOLDS)) {
+      const threshold: ApprovalThreshold = {
+        id: `default-${dim}`,
+        dimension: dim as ThresholdDimension,
+        value: val,
+        timeoutMs: DEFAULT_TIMEOUTS[dim as ThresholdDimension],
+        timeoutAction: 'auto_reject',
+        scope: '',
+      };
+      await dbPool.query(
+        'INSERT INTO approval_thresholds (dimension, value, timeout_ms, timeout_action, scope) VALUES ($1, $2, $3, $4, $5)',
+        [threshold.dimension, threshold.value, threshold.timeoutMs, threshold.timeoutAction, threshold.scope],
+      );
+      thresholds.set(threshold.dimension, threshold);
+    }
+  } else {
+    for (const row of result.rows) {
+      thresholds.set(row.dimension, {
+        id: row.id,
+        dimension: row.dimension,
+        value: Number(row.value),
+        timeoutMs: row.timeout_ms,
+        timeoutAction: row.timeout_action as ApprovalThreshold['timeoutAction'],
+        scope: row.scope,
+      });
+    }
+  }
+
+  initialized = true;
+}
 
 function ensureDefaults(): void {
   if (initialized) return;
@@ -48,9 +100,21 @@ function ensureDefaults(): void {
   initialized = true;
 }
 
-export function setThreshold(threshold: ApprovalThreshold): void {
+export async function setThreshold(threshold: ApprovalThreshold): Promise<void> {
   ensureDefaults();
   thresholds.set(threshold.dimension, threshold);
+
+  if (dbPool) {
+    await dbPool.query(
+      `DELETE FROM approval_thresholds WHERE dimension = $1`,
+      [threshold.dimension],
+    );
+    await dbPool.query(
+      `INSERT INTO approval_thresholds (dimension, value, timeout_ms, timeout_action, scope)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [threshold.dimension, threshold.value, threshold.timeoutMs, threshold.timeoutAction, threshold.scope],
+    );
+  }
 }
 
 export function getThresholds(): ApprovalThreshold[] {

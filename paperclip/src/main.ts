@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import { getPool, closePool, createEventBus } from '@paperclip/core';
-import { getOrCreateCEO, listAgentsByDepartment } from '@paperclip/core';
+import { getOrCreateCEO, listAgentsByDepartment, updateAgent as coreUpdateAgent, deactivateAgent as coreDeactivateAgent } from '@paperclip/core';
+import { initBudgetService } from '@paperclip/core';
+import { initGovernanceService } from '@paperclip/core';
 import { HeartbeatEngine } from '@paperclip/core';
 import { registerAdapter, clearAdapters } from '@paperclip/core';
 import { setEscalationEventBus, setEscalationPool } from '@paperclip/core';
@@ -83,6 +85,14 @@ async function startup(): Promise<void> {
   console.log('[Main] Ensuring CEO exists...');
   await getOrCreateCEO(db);
 
+  // 3b. Initialize budget service (load from DB)
+  console.log('[Main] Initializing budget service...');
+  await initBudgetService(db);
+
+  // 3c. Initialize governance service (load thresholds from DB)
+  console.log('[Main] Initializing governance service...');
+  await initGovernanceService(db);
+
   // 4. Register agent adapters
   console.log('[Main] Registering agent adapters...');
   clearAdapters();
@@ -90,21 +100,21 @@ async function startup(): Promise<void> {
   registerAdapter(new GenericCliAdapter('generic-cli', { commandTemplate: 'echo "{{task}}"' }));
   console.log('[Main] Adapters registered: claude-code (default), generic-cli');
 
-  // 5. Start heartbeat engine
+  // 5. Start learning coordinator (before heartbeat so it can be passed as dependency)
+  console.log('[Main] Starting learning coordinator...');
+  learningCoordinator = new LearningCoordinator(db, eventBus);
+  learningCoordinator.start();
+  console.log('[Main] Learning coordinator started');
+
+  // 6. Start heartbeat engine (with learning coordinator wired in)
   console.log('[Main] Starting heartbeat engine...');
   heartbeat = new HeartbeatEngine(db, eventBus, {
     pollIntervalMs: 5_000,
     timeoutMs: 30 * 60 * 1_000,
     defaultAdapterType: 'claude-code',
-  });
+  }, learningCoordinator);
   await heartbeat.start();
   console.log('[Main] Heartbeat engine started');
-
-  // 6. Start learning coordinator
-  console.log('[Main] Starting learning coordinator...');
-  learningCoordinator = new LearningCoordinator(db, eventBus);
-  learningCoordinator.start();
-  console.log('[Main] Learning coordinator started');
 
   // 7. Set up escalation DB pool
   setEscalationPool(pool);
@@ -177,6 +187,12 @@ async function startup(): Promise<void> {
       // Simple upsert
       return data;
     },
+    updateAgent: async (id: string, data: Record<string, unknown>) => {
+      return coreUpdateAgent(db, id, data as any);
+    },
+    deactivateAgent: async (id: string) => {
+      return coreDeactivateAgent(db, id);
+    },
   });
 
   // Mount trading API router
@@ -196,6 +212,15 @@ async function startup(): Promise<void> {
   cronScheduler = new CronRoutineScheduler(pool);
   await cronScheduler.start();
   console.log('[Main] Cron routine scheduler started');
+
+  // Load trading template (departments, agents, routines)
+  console.log('[Main] Loading trading template...');
+  try {
+    const { loadTradingTemplate } = await import('@paperclip/trading');
+    await loadTradingTemplate(db, cronScheduler);
+  } catch (err) {
+    console.warn('[Main] Template loading failed (non-fatal):', err instanceof Error ? err.message : err);
+  }
 
   // Start HTTP server using Node http module
   const { createServer } = await import('node:http');

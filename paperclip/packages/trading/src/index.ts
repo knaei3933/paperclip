@@ -17,3 +17,4 @@ export { createProposalDraft } from './skills/proposal-draft/handler.js';
 export * from './skills/proposal-draft/margin-calculator.js';
 export * from './skills/proposal-draft/proposal-draft.service.js';
 export * from './documents/proposal-template.js';
+export { loadTradingTemplate } from './agents/template-loader.js';

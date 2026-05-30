@@ -1,4 +1,4 @@
-export type AgentStatus = 'idle' | 'running' | 'error';
+export type AgentStatus = 'idle' | 'running' | 'error' | 'inactive';
 
 export interface AIAgent {
   id: string;
@@ -9,4 +9,8 @@ export interface AIAgent {
   budgetLimit: number;
   workspaceId: string;
   status: AgentStatus;
+  capabilities: string;
+  adapterType: string;
+  adapterConfig: Record<string, unknown>;
+  proactiveRoutines: unknown[];
 }

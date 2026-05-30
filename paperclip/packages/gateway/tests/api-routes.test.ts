@@ -91,12 +91,14 @@ function createTestDeps(): ApiServerDeps {
     getImprovementMetrics: async () => ({ accuracy: 0.85 }),
     getBudgetUtilization: async () => ({ spent: 50, limit: 100 }),
     getThresholds: () => getThresholds(),
-    setThreshold: (t: Record<string, unknown>) => setThreshold(t as Parameters<typeof setThreshold>[0]),
+    setThreshold: async (t: Record<string, unknown>) => setThreshold(t as Parameters<typeof setThreshold>[0]),
     routeEscalation: async () => [],
     createPipeline: async (input) => ({ id: 'pipe-1', ...input }),
     listPipelines: async () => [],
     getPipelineById: async () => null,
     advancePipeline: async () => ({ advanced: false }),
+    updateAgent: async () => null,
+    deactivateAgent: async () => false,
   };
 }
 

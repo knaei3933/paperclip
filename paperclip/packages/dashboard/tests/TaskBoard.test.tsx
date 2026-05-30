@@ -50,7 +50,7 @@ describe('TaskBoard', () => {
   it('renders loading state', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}));
     render(<TaskBoard wsEvent={null} />);
-    expect(screen.getByText('Loading tasks...')).toBeInTheDocument();
+    expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
   it('renders all column headers', async () => {
@@ -63,11 +63,11 @@ describe('TaskBoard', () => {
     render(<TaskBoard wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Queued')).toBeInTheDocument();
-      expect(screen.getByText('Assigned')).toBeInTheDocument();
-      expect(screen.getByText('Running')).toBeInTheDocument();
-      expect(screen.getByText('Completed')).toBeInTheDocument();
-      expect(screen.getByText('Failed')).toBeInTheDocument();
+      expect(screen.getByText('待機中')).toBeInTheDocument();
+      expect(screen.getByText('割り当て済み')).toBeInTheDocument();
+      expect(screen.getByText('実行中')).toBeInTheDocument();
+      expect(screen.getByText('完了')).toBeInTheDocument();
+      expect(screen.getByText('失敗')).toBeInTheDocument();
     });
   });
 
@@ -98,10 +98,10 @@ describe('TaskBoard', () => {
 
     await waitFor(() => {
       // Queued column has 1 task
-      const queuedHeader = screen.getByText('Queued').parentElement!;
+      const queuedHeader = screen.getByText('待機中').parentElement!;
       expect(queuedHeader.textContent).toContain('1');
       // Completed column has 1 task
-      const completedHeader = screen.getByText('Completed').parentElement!;
+      const completedHeader = screen.getByText('完了').parentElement!;
       expect(completedHeader.textContent).toContain('1');
     });
   });
@@ -116,9 +116,9 @@ describe('TaskBoard', () => {
     render(<TaskBoard wsEvent={null} />);
 
     await waitFor(() => {
-      expect(screen.getByText('Medium')).toBeInTheDocument();
-      expect(screen.getByText('High')).toBeInTheDocument();
-      expect(screen.getByText('Low')).toBeInTheDocument();
+      expect(screen.getByText('中')).toBeInTheDocument();
+      expect(screen.getByText('高')).toBeInTheDocument();
+      expect(screen.getByText('低')).toBeInTheDocument();
     });
   });
 

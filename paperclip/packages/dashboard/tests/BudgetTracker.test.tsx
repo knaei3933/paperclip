@@ -17,7 +17,7 @@ describe('BudgetTracker', () => {
   it('renders loading state', () => {
     vi.spyOn(globalThis, 'fetch').mockReturnValue(new Promise(() => {}));
     render(<BudgetTracker />);
-    expect(screen.getByText('Loading budget data...')).toBeInTheDocument();
+    expect(screen.getByText('読み込み中...')).toBeInTheDocument();
   });
 
   it('renders budget entries for each agent', async () => {
@@ -46,7 +46,7 @@ describe('BudgetTracker', () => {
     render(<BudgetTracker />);
 
     await waitFor(() => {
-      expect(screen.getByText('$500.00')).toBeInTheDocument();
+      expect(screen.getByText('¥500.00')).toBeInTheDocument();
     });
   });
 
@@ -76,7 +76,7 @@ describe('BudgetTracker', () => {
     render(<BudgetTracker />);
 
     await waitFor(() => {
-      expect(screen.getByText('WARNING')).toBeInTheDocument(); // agent-2 at 90%
+      expect(screen.getByText('警告')).toBeInTheDocument(); // agent-2 at 90%
     });
   });
 
@@ -90,7 +90,7 @@ describe('BudgetTracker', () => {
     render(<BudgetTracker />);
 
     await waitFor(() => {
-      expect(screen.getByText('CRITICAL')).toBeInTheDocument(); // agent-3 at 99%
+      expect(screen.getByText('危険')).toBeInTheDocument(); // agent-3 at 99%
     });
   });
 
@@ -104,7 +104,7 @@ describe('BudgetTracker', () => {
     render(<BudgetTracker />);
 
     await waitFor(() => {
-      expect(screen.getByText('No budget data available.')).toBeInTheDocument();
+      expect(screen.getByText('予算データがありません。')).toBeInTheDocument();
     });
   });
 });

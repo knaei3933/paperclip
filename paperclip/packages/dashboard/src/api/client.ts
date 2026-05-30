@@ -171,6 +171,8 @@ export interface AgentListItem {
   budgetLimit: number;
   budgetUsed: number;
   currentTaskId: string | null;
+  capabilities: string;
+  adapterType: string;
 }
 
 export interface TaskItem {
@@ -230,9 +232,10 @@ export async function login(username: string, password: string): Promise<{ succe
       const body = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(body.error ?? 'ログインに失敗しました');
     }
-    const data = await res.json() as { token: string };
-    setAuthToken(data.token);
-    return { success: true, token: data.token };
+    const data = await res.json() as { accessToken: string; token?: string };
+    const token = data.accessToken ?? data.token;
+    setAuthToken(token);
+    return { success: true, token };
   } catch (err) {
     return { success: false };
   }
@@ -258,6 +261,17 @@ export async function refreshToken(): Promise<boolean> {
 export const api = {
   getAgents: () =>
     request<{ agents: AgentListItem[]; total: number }>('/agents'),
+
+  updateAgent: (id: string, data: Record<string, unknown>) =>
+    request<{ agent: AgentListItem }>(`/agents/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deactivateAgent: (id: string) =>
+    request<{ success: boolean }>(`/agents/${id}`, {
+      method: 'DELETE',
+    }),
 
   getTasks: (filters?: Record<string, string>) => {
     const params = filters ? '?' + new URLSearchParams(filters).toString() : '';

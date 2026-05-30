@@ -56,6 +56,8 @@ export interface GatewayConfig {
   getBudgetUtilization?: () => Promise<unknown>;
   getThresholds?: () => Promise<unknown>;
   updateThresholds?: (data: Record<string, unknown>) => Promise<unknown>;
+  updateAgent?: (id: string, data: Record<string, unknown>) => Promise<unknown | null>;
+  deactivateAgent?: (id: string) => Promise<boolean>;
 }
 
 export interface Gateway {
@@ -104,7 +106,7 @@ export function createGateway(config: GatewayConfig): Gateway {
     getImprovementMetrics: config.getImprovementMetrics ?? (async () => ({})),
     getBudgetUtilization: config.getBudgetUtilization ?? (async () => ({})),
     getThresholds: () => getThresholds(),
-    setThreshold: (t: Record<string, unknown>) => setThreshold(t as unknown as ApprovalThreshold),
+    setThreshold: async (t: Record<string, unknown>) => setThreshold(t as unknown as ApprovalThreshold),
     routeEscalation: async (esc: unknown) => {
       return router.routeEscalation(esc as EscalationRequest);
     },
@@ -120,6 +122,8 @@ export function createGateway(config: GatewayConfig): Gateway {
     advancePipeline: config.pool
       ? async (id: string) => coreAdvancePipeline(config.pool!, id, '')
       : async () => ({ advanced: false }),
+    updateAgent: config.updateAgent ?? (async () => null),
+    deactivateAgent: config.deactivateAgent ?? (async () => false),
   });
 
   return {
