@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls packages/gateway/src/\",\"description\":\"List gateway source files\"}",
+  "error": "Exit code 2\nls: cannot access 'packages/gateway/src/': No such file or directory",
+  "timestamp": "2026-05-28T00:02:02.931Z",
+  "retry_count": 1
+}

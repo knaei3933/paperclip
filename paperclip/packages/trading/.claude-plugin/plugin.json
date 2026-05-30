@@ -1,0 +1,8 @@
+{
+  "name": "paperclip-trading",
+  "version": "1.0.0",
+  "description": "Trading company operations plugin for Kanei Trading (カネイ貿易). Manages sales pipeline, equipment proposals, customer/supplier intelligence, and multilingual business workflows in Japanese, Korean, and English.",
+  "author": {
+    "name": "Kanei Trading"
+  }
+}

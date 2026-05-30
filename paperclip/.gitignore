@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-spa/
+.env
+*.log
+.omc/state/
+.omc/notepad.md
+.omc/logs/
+.DS_Store
+Thumbs.db
+trading.local.json

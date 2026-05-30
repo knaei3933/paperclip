@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "paperclip-trading": {
+      "type": "sse",
+      "url": "http://localhost:3100/mcp/sse"
+    },
+    "paperclip-api": {
+      "type": "http",
+      "url": "http://localhost:3001/api/trading"
+    },
+    "paperclip-gateway": {
+      "type": "http",
+      "url": "http://localhost:3000"
+    },
+    "paperclip-postgres": {
+      "type": "http",
+      "url": "",
+      "note": "Direct PostgreSQL connection via pg driver (paperclip:paperclip@localhost:5432/paperclip)"
+    },
+    "obsidian-vault": {
+      "type": "http",
+      "url": "",
+      "note": "Obsidian vault at C:\\Users\\kanei\\01.Obsidian Vault\\03 카네이무역"
+    }
+  }
+}

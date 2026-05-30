@@ -1,0 +1,169 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779926510400,
+  "projectRoot": "C:\\Users\\kanei\\claudecode\\paperclip\\packages\\dashboard",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "react",
+        "version": "19.0.0",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "19.0.0",
+        "category": "frontend"
+      },
+      {
+        "name": "vite",
+        "version": "6.0.0",
+        "category": "build"
+      },
+      {
+        "name": "vitest",
+        "version": "3.0.0",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": "npm test",
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "vite",
+      "build": "tsc --noEmit && vite build",
+      "preview": "vite preview",
+      "test": "vitest run",
+      "test:watch": "vitest"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": "type-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "src",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "dist": {
+      "path": "dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 4,
+      "lastAccessed": 1779926510383,
+      "keyFiles": [
+        "index.d.ts",
+        "index.d.ts.map",
+        "index.js",
+        "index.js.map"
+      ]
+    },
+    "dist-spa": {
+      "path": "dist-spa",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1779926510383,
+      "keyFiles": [
+        "index.html"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 3,
+      "lastAccessed": 1779926510387,
+      "keyFiles": [
+        "App.tsx",
+        "index.ts",
+        "main.tsx"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 6,
+      "lastAccessed": 1779926510388,
+      "keyFiles": [
+        "AgentStatus.test.tsx",
+        "ApprovalQueue.test.tsx",
+        "BudgetTracker.test.tsx",
+        "ImprovementMetrics.test.tsx",
+        "setup.ts"
+      ]
+    },
+    "dist-spa\\assets": {
+      "path": "dist-spa\\assets",
+      "purpose": "Static assets",
+      "fileCount": 1,
+      "lastAccessed": 1779926510388,
+      "keyFiles": [
+        "index-cBlShfYG.js"
+      ]
+    },
+    "src\\api": {
+      "path": "src\\api",
+      "purpose": "API routes",
+      "fileCount": 3,
+      "lastAccessed": 1779926510388,
+      "keyFiles": [
+        "client.ts",
+        "hooks.ts",
+        "websocket.ts"
+      ]
+    },
+    "src\\components": {
+      "path": "src\\components",
+      "purpose": "UI components",
+      "fileCount": 5,
+      "lastAccessed": 1779926510388,
+      "keyFiles": [
+        "AgentStatus.tsx",
+        "ApprovalQueue.tsx",
+        "BudgetTracker.tsx"
+      ]
+    },
+    "src\\pages": {
+      "path": "src\\pages",
+      "purpose": "Page components",
+      "fileCount": 11,
+      "lastAccessed": 1779926510389,
+      "keyFiles": [
+        "Agents.tsx",
+        "Approvals.tsx",
+        "Customers.tsx"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

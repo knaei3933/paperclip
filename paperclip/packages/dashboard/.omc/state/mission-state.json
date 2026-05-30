@@ -1,0 +1,53 @@
+{
+  "updatedAt": "2026-05-28T00:03:40.878Z",
+  "missions": [
+    {
+      "id": "session:47504cac-cf7d-437d-bb0a-ba0abed5a27f:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-05-28T00:00:28.237Z",
+      "updatedAt": "2026-05-28T00:03:40.878Z",
+      "status": "done",
+      "workerCount": 1,
+      "taskCounts": {
+        "total": 1,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 1,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "search-specialist:a938eb7",
+          "role": "search-specialist",
+          "ownership": "a938eb7b46ca967d6",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-28T00:03:40.878Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:a938eb7b46ca967d6:2026-05-28T00:00:28.237Z",
+          "at": "2026-05-28T00:00:28.237Z",
+          "kind": "update",
+          "agent": "search-specialist:a938eb7",
+          "detail": "started search-specialist:a938eb7",
+          "sourceKey": "session-start:a938eb7b46ca967d6"
+        },
+        {
+          "id": "session-stop:a938eb7b46ca967d6:2026-05-28T00:03:40.878Z",
+          "at": "2026-05-28T00:03:40.878Z",
+          "kind": "completion",
+          "agent": "search-specialist:a938eb7",
+          "detail": "completed",
+          "sourceKey": "session-stop:a938eb7b46ca967d6"
+        }
+      ]
+    }
+  ]
+}

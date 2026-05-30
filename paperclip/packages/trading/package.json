@@ -1,0 +1,26 @@
+{
+  "name": "@paperclip/trading",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@paperclip/shared-types": "workspace:*",
+    "imapflow": "^1.0.0",
+    "nodemailer": "^6.9.0",
+    "pdf-parse": "^2.4.5",
+    "pdfkit": "^0.15.0",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.0",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/pdfkit": "^0.13.0",
+    "@types/pg": "^8.11.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,12 @@
+export type { HumanDecisionMaker, ApprovalThreshold } from './HumanDecisionMaker.js';
+export type { AIAgent, AgentStatus } from './AIAgent.js';
+export type { Company } from './Company.js';
+export type { Department } from './Department.js';
+export type { Task, TaskStatus } from './Task.js';
+export type { EscalationRequest, EscalationStatus, EscalationUrgency } from './EscalationRequest.js';
+export type { AgentMemory, Experience, LearnedSkill, PerformanceMetrics } from './AgentMemory.js';
+export type { SelfImprovement, MetricsSnapshot, SkillUpdate } from './SelfImprovement.js';
+export type { Dashboard, AgentStatusEntry, TaskProgressEntry, DashboardMetric } from './Dashboard.js';
+export type { MultiChannel, PlatformConfig, ActiveConnection } from './MultiChannel.js';
+export type { Workspace } from './Workspace.js';
+export type { Budget } from './Budget.js';
